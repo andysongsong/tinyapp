@@ -21,7 +21,7 @@ const urlDatabase = {
 //   res.send("<html><body>Hello <b>World</b></body></html>\n");
 // });
 
-//all get routes
+//all get routes.
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
