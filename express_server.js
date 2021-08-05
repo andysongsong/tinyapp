@@ -1,14 +1,15 @@
+const { generateRandomString } = require("./helper");
+const { findEmail } = require("./helper");
+const { urlsForUser } = require("./helper");
 const express = require("express");
 const morgan = require("morgan");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const bcrypt = require("bcrypt");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
-const { generateRandomString } = require("./helper");
-const { findEmail } = require("./helper");
-const { urlsForUser } = require("./helper");
-const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 app.use(morgan("dev"));
 //
@@ -27,18 +28,12 @@ const users = {
   aJ48lW: {
     id: "aJ48lW",
     email: "1@3.com",
-    password: "234",
+    password: bcrypt.hashSync("234", 10),
   },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
-  },
-
   andy: {
     id: "andy",
     email: "1@2.com",
-    password: "123",
+    password: bcrypt.hashSync("123", 10),
   },
 };
 
@@ -55,12 +50,13 @@ const users = {
 //all get routes.
 app.get("/urls", (req, res) => {
   const user = users[req.cookies["user_id"]];
+  console.log("user", user);
   if (user) {
     const urls = urlsForUser(user.id, urlDatabase);
     const templateVars = { user: users[req.cookies["user_id"]], urls: urls };
     res.render("urls_index", templateVars);
   } else {
-    res.redirect("/login");
+    res.render("urls_index", { user: undefined });
   }
 });
 
@@ -127,15 +123,22 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
+  const password1 = req.body.password;
   const user = findEmail(users, email);
-  if (!user) {
-    res.status(403).send("User name not valid");
-  } else if (password !== user.password) {
-    res.status(403).send("Incorrect password");
-  } else {
-    res.cookie("user_id", user.id);
+
+  if (user) {
+    if (bcrypt.compareSync(password1, user.password)) {
+      res.cookie("user_id", user.id);
+      res.redirect("/urls");
+    } else {
+      res.status(403).send("Incorrect password");
+    }
+  } else if (!email || !password) {
+    return res.status(403).send("email and password cannot be empty");
+  } else if (!user) {
+    return res.status(403).send("no user with that email found");
   }
+
   res.redirect("/urls");
 });
 
@@ -160,7 +163,7 @@ app.post("/register", (req, res) => {
     users[newID] = {
       id: newID,
       email: email,
-      password: password,
+      password: bcrypt.hashSync(password, 10),
     };
     res.cookie("user_id", newID);
     res.redirect("/urls");
