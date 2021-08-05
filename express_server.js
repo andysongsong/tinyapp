@@ -31,6 +31,12 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk",
   },
+
+  andy: {
+    id: "andy",
+    email: "1@2.com",
+    password: "123",
+  },
 };
 
 // app.get("/urls.json", (req, res) => {
@@ -66,22 +72,31 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.cookies["user_id"]],
   };
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL]; // const longURL = ...
-  res.redirect(longURL);
+  if (urlDatabase[req.params.shortURL]) {
+    const longURL = urlDatabase[req.params.shortURL].longURL; // const longURL = ...
+    res.redirect(longURL);
+  } else {
+    res.send("URL does not exit");
+  }
 });
 
 //route for creating a new url
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
+  urlDatabase[shortURL] = {
+    longURL: req.body.longURL,
+    userID: req.cookies["user_id"],
+  };
+
+  req.body.longURL;
   res.redirect(`http://localhost:8080/urls/${shortURL}`);
 });
 
@@ -94,7 +109,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //route for updating a url
 app.post("/urls/:shortURL", (req, res) => {
   let newURL = req.body.newURL;
-  urlDatabase[req.params.shortURL] = newURL;
+  urlDatabase[req.params.shortURL].longURL = newURL;
   res.redirect("/urls");
 });
 
