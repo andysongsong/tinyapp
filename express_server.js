@@ -4,7 +4,8 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
-const generateRandomString = require("./helper");
+const { generateRandomString } = require("./helper");
+const { findEmail } = require("./helper");
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
@@ -90,12 +91,26 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 //route fot login & logout
-app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls");
+app.get("/login", (req, res) => {
+  const templateVars = { user: users[req.cookies["user_id"]] };
+  res.render("urls_login", templateVars);
 });
 
-app.post("/logout", (req, res) => {
+app.post("/login", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = findEmail(users, email);
+  if (password !== user.password) {
+    res.status(403).send("Incorrect password");
+  } else if (!user) {
+    res.status(403).send("User name not valid");
+  } else {
+    res.cookie("user_id", user.id);
+    res.redirect("/urls");
+  }
+});
+
+app.get("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/urls");
 });
@@ -104,13 +119,20 @@ app.post("/register", (req, res) => {
   const newID = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
-  users[newID] = {
-    id: newID,
-    email: email,
-    password: password,
-  };
-  res.cookie("user_id", users[newID]);
-  res.redirect("/urls");
+  const user = findEmail(users, email);
+  if (email.length === 0 && password.length === 0) {
+    res.status(400).send("Empty and nothing entered");
+  } else if (user) {
+    users[newID] = {
+      id: newID,
+      email: email,
+      password: password,
+    };
+    res.cookie("user_id", users[newID]);
+    res.redirect("/urls");
+  } else {
+    res.status(400).send("User already exists.");
+  }
 });
 
 app.listen(PORT, () => {
