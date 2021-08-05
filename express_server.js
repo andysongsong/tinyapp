@@ -26,6 +26,7 @@ const users = {
     password: "dishwasher-funk",
   },
 };
+
 // app.get("/urls.json", (req, res) => {
 //   res.json(urlDatabase);
 // });
@@ -48,11 +49,6 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: users[req.cookies["user_id"]] };
   res.render("urls_new");
-});
-
-app.get("/register", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
-  res.render("urls_Registration", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -110,9 +106,14 @@ app.post("/login", (req, res) => {
   }
 });
 
-app.get("/logout", (req, res) => {
+app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/urls");
+});
+
+app.get("/register", (req, res) => {
+  const templateVars = { user: users[req.cookies["user_id"]] };
+  res.render("urls_Registration", templateVars);
 });
 
 app.post("/register", (req, res) => {
@@ -122,7 +123,7 @@ app.post("/register", (req, res) => {
   const user = findEmail(users, email);
   if (email.length === 0 && password.length === 0) {
     res.status(400).send("Empty and nothing entered");
-  } else if (user) {
+  } else if (!user) {
     users[newID] = {
       id: newID,
       email: email,
