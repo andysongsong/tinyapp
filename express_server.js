@@ -1,4 +1,5 @@
 const express = require("express");
+const morgan = require("morgan");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
@@ -6,9 +7,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 const { generateRandomString } = require("./helper");
 const { findEmail } = require("./helper");
+const { urlsForUser } = require("./helper");
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
-
+app.use(morgan("dev"));
+//
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -21,10 +24,10 @@ const urlDatabase = {
 };
 
 const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+  aJ48lW: {
+    id: "aJ48lW",
+    email: "1@3.com",
+    password: "234",
   },
   user2RandomID: {
     id: "user2RandomID",
@@ -51,12 +54,14 @@ const users = {
 
 //all get routes.
 app.get("/urls", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    user: users[req.cookies["user_id"]],
-  };
-
-  res.render("urls_index", templateVars);
+  const user = users[req.cookies["user_id"]];
+  if (user) {
+    const urls = urlsForUser(user.id, urlDatabase);
+    const templateVars = { user: users[req.cookies["user_id"]], urls: urls };
+    res.render("urls_index", templateVars);
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.get("/urls/new", (req, res) => {

@@ -19,4 +19,14 @@ const findEmail = (users, email) => {
   return null;
 };
 
-module.exports = { generateRandomString, findEmail };
+const urlsForUser = (id, db) => {
+  const userURLs = {};
+  for (let url in db) {
+    if (id === db[url].userID) {
+      userURLs[url] = db[url];
+    }
+  }
+  return userURLs;
+};
+
+module.exports = { generateRandomString, findEmail, urlsForUser };
