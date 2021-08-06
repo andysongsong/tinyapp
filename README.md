@@ -4,9 +4,9 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["Screenshot of URLs page"](https://github.com/andysongsong/tinyapp/blob/master/docs/urls-page.png?raw=true)
+!["Screenshot of URLs page"](https://github.com/andysongsong/tinyapp/blob/master/docs/urls-page.png?raw=trues)
 
-!["Screenshot of register page"](https://github.com/andysongsong/tinyapp/blob/master/docs/register-page.png?raw=true)
+!["Screenshot of register page"]('https://github.com/andysongsong/tinyapp/blob/master/docs/register-page.png?raw=true')
 
 !["Screenshot of profile page"](https://github.com/andysongsong/tinyapp/blob/master/docs/profile-page.png?raw=true)
 
