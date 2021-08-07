@@ -127,10 +127,8 @@ app.post("/login", (req, res) => {
     } else {
       res.status(403).send("Incorrect password");
     }
-  } else if (!email || !password) {
-    return res.status(403).send("email and password cannot be empty");
-  } else if (!user) {
-    return res.status(403).send("no user with that email found");
+  } else {
+    return res.status(403).send("No user with that email found, please register an account.");
   }
 
   res.redirect("/urls");
