@@ -65,12 +65,26 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = {
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL,
-    user: users[req.session["user_id"]],
-  };
-  res.render("urls_show", templateVars);
+  if (!req.session["user_id"]) {
+    res.status(400).send(" OOPS! Please Login or Register!");
+  } else if (!urlDatabase[req.params.shortURL]) {
+    res.status(404).send("URL not found! This URL doesn't exist");
+  } else if (
+    urlDatabase[req.params.shortURL].userID === req.session["user_id"]
+  ) {
+    const templateVars = {
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      user: users[req.session["user_id"]],
+    };
+    res.render("urls_show", templateVars);
+  } else if (
+    urlDatabase[req.params.shortURL].userID !== req.session["user_id"]
+  ) {
+    res.status(403).send(" This is not your URL");
+  } else {
+    res.status(400).send(" Please Login!");
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -128,7 +142,9 @@ app.post("/login", (req, res) => {
       res.status(403).send("Incorrect password");
     }
   } else {
-    return res.status(403).send("No user with that email found, please register an account.");
+    return res
+      .status(403)
+      .send("No user with that email found, please register an account.");
   }
 
   res.redirect("/urls");
